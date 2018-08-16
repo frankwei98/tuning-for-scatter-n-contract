@@ -2,10 +2,11 @@
   <div class="home">
     <img alt="Vue logo" src="../assets/logo.png">
     <div class="btn-group" v-if="identity">
+      <FetchBalance account_name="itegame" symbol="SYS" />
       <h1 class="title">Welcome back! Your ID is: {{ identity.accounts[0].name }}</h1>
       <button class="button" @click="updateAuth">updateAuth</button>
-      <button class="button" @click="() => transfer(1)">TRANSFER</button>
-      <button class="button">SELL</button>
+      <button class="button" @click="() => buy(1)">TRANSFER</button>
+      <button class="button" @click="() => withdraw(10)">SELL</button>
       <br>
       <button class="button" @click="signOut">LOGOUT</button>
       <button class="button" @click="getPublicKey">getPublicKey</button>
@@ -21,6 +22,7 @@
 // @ is an alias to /src
 import { mapState, mapMutations } from "vuex";
 import HelloWorld from "@/components/HelloWorld.vue";
+import FetchBalance from "@/components/FetchBalance.vue";
 import axios from "axios";
 import network from "../network.json";
 
@@ -29,23 +31,39 @@ const requiredFields = { accounts: [network] };
 export default {
   name: "home",
   data: () => ({
-    account_name: "happyeosslot"
+    account_name: "slot"
   }),
   computed: {
     ...mapState(["identity", "scatter", "eos", "account"])
   },
   components: {
-    HelloWorld
+    HelloWorld,
+    FetchBalance
   },
   created() {
     this.getPublicKey();
   },
   methods: {
     ...mapMutations(["setIdentity"]),
+    async suggestNetworkSetting() {
+        try {
+          await this.scatter.suggestNetwork({
+        "protocol": "http",
+        "blockchain": "eos",
+        "host": "127.0.0.1",
+        "port": 8888,
+        "chainId": "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f"
+    })
+        } catch (error) {
+          console.info('User canceled to suggestNetwork')
+          return;
+        }
+    },
     notification(msg1, msg2) {
       alert(msg2);
     },
     async requestId() {
+      await this.suggestNetworkSetting()
       const identity = await scatter.getIdentity(requiredFields);
       this.setIdentity(identity);
     },
@@ -55,21 +73,11 @@ export default {
         this.setIdentity(null);
       } catch (error) {}
     },
-    async buy() {
-      this.eos.contract("happyeosslot", requiredFields).then(contract => {
-        return contract.buy(this.account.name, "1 EOS", {
-          authorization: [`${this.account.name}@${this.account.authority}`]
-        });
-      });
-    },
-    async transfer(amount) {
+    async buy(amount) {
       const { account_name } = this;
-      const result = await this.eos.transfer(
-        this.account.name,
-        account_name,
-        `${amount}.0000 SYS`,
-        ""
-      ).then(() => {
+      this.eos
+        .transfer(this.account.name, account_name, `${amount}.0000 SYS`, "")
+        .then(() => {
           this.notification("succeeded", "购买成功");
           return Promise.resolve(null);
         })
@@ -77,7 +85,6 @@ export default {
           this.notification("error", "购买失败");
           return Promise.reject(err);
         });
-      
     },
     async getPublicKey() {
       const { account_name } = this;
@@ -116,7 +123,7 @@ export default {
               accounts: [
                 {
                   permission: {
-                    actor: "happyeosslot",
+                    actor: "slot",
                     permission: "eosio.code"
                   },
                   weight: 1
@@ -134,49 +141,15 @@ export default {
           return Promise.reject(err);
         });
     },
-    deposit(amount) {
-      /*
-            this.updateAuth()
-                .then(() => {
-                    this.notification('pending', '正在充值(' + amount + ')EOS');
-                    var requiredFields = this.requiredFields;
-                    this.eos.contract('happyeosslot', { requiredFields }).then(contract => {
-                        console.warn(amount);
-                        return contract.buy(this.account.name, amount, { authorization: [`${this.account.name}@${this.account.authority}`] });
-                    })
-                        .then(() => {
-                            this.notification('succeeded', '充值成功');
-                        })
-                        .catch((err) => {
-                            this.notification('error', '充值成功', err.toString());
-                        });
-                });*/
-      this.notification("pending", "正在充值(" + amount + ")EOS");
+    withdraw(amount) {
+      this.notification("pending", "正在兑换积分获得(" + amount + ")EOS");
       this.eos
-        .contract("happyeosslot", { requiredFields })
+        .contract("slot", { requiredFields })
         .then(contract =>
-          contract.buy(this.account.name, amount, {
+          contract.sell(this.account.name, parseInt(amount), {
             authorization: [`${this.account.name}@${this.account.authority}`]
           })
         )
-        .then(() => {
-          this.notification("succeeded", "充值成功");
-        })
-        .catch(err => {
-          this.notification("error", "充值成功", err.toString());
-        });
-    },
-    withdraw(amount) {
-      this.notification("pending", "正在兑换积分获得(" + amount + ")EOS");
-      var requiredFields = this.requiredFields;
-      this.eos
-        .contract("happyeosslot", { requiredFields })
-        .then(contract => {
-          console.log(contract);
-          return contract.sell(this.account.name, parseInt(amount), {
-            authorization: [`${this.account.name}@${this.account.authority}`]
-          });
-        })
         .then(() => {
           this.notification("succeeded", "兑换成功");
         })
