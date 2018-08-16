@@ -3,15 +3,12 @@
     <img alt="Vue logo" src="../assets/logo.png">
     <div class="btn-group" v-if="identity">
       <h1 class="title">Welcome back! Your ID is: {{ identity.accounts[0].name }}</h1>
-      <button class="button" @click="buy">BUY</button>
-      <button class="button" @click="() => deposit('1 EOS')">deposit</button>
       <button class="button" @click="updateAuth">updateAuth</button>
-      <button class="button">TRANSFER</button>
+      <button class="button" @click="() => transfer(1)">TRANSFER</button>
       <button class="button">SELL</button>
       <br>
       <button class="button" @click="signOut">LOGOUT</button>
       <button class="button" @click="getPublicKey">getPublicKey</button>
-      <button class="button" @click="hi">Greeting from contract</button>
     </div>
     <div class="btn-group" v-else>
       <button class="button" @click="requestId">Fetch Scatter ID</button>
@@ -60,10 +57,27 @@ export default {
     },
     async buy() {
       this.eos.contract("happyeosslot", requiredFields).then(contract => {
-        return contract.buy(this.account.name, "1 SYS", {
+        return contract.buy(this.account.name, "1 EOS", {
           authorization: [`${this.account.name}@${this.account.authority}`]
         });
       });
+    },
+    async transfer(amount) {
+      const { account_name } = this;
+      const result = await this.eos.transfer(
+        this.account.name,
+        account_name,
+        `${amount}.0000 SYS`,
+        ""
+      ).then(() => {
+          this.notification("succeeded", "购买成功");
+          return Promise.resolve(null);
+        })
+        .catch(err => {
+          this.notification("error", "购买失败");
+          return Promise.reject(err);
+        });
+      
     },
     async getPublicKey() {
       const { account_name } = this;
@@ -138,15 +152,13 @@ export default {
                         });
                 });*/
       this.notification("pending", "正在充值(" + amount + ")EOS");
-      var requiredFields = this.requiredFields;
       this.eos
         .contract("happyeosslot", { requiredFields })
-        .then(contract => {
-          console.warn(amount);
-          return contract.buy(this.account.name, amount, {
+        .then(contract =>
+          contract.buy(this.account.name, amount, {
             authorization: [`${this.account.name}@${this.account.authority}`]
-          });
-        })
+          })
+        )
         .then(() => {
           this.notification("succeeded", "充值成功");
         })
@@ -171,13 +183,6 @@ export default {
         .catch(err => {
           this.notification("error", "兑换失败", err.toString());
         });
-    },
-    async hi() {
-      this.eos.contract("hello", requiredFields).then(contract => {
-        return contract.hi(this.account.name, {
-          authorization: [`${this.account.name}@${this.account.authority}`]
-        });
-      });
     }
   }
 };
