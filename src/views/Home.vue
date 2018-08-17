@@ -4,12 +4,12 @@
     <div class="btn-group" v-if="identity">
       <h1 class="title"> The Happy EOS Slot </h1>
       <FetchProfile :account_name="identity.accounts[0].name" symbol="EOS" v-if="identity" />
-      <button class="button" @click="updateAuth">updateAuth</button>
-      <button class="button" @click="() => buy(0.01)">Buy Credits</button>
+      <button class="button" @click="buy">Buy Credits</button>
       <button class="button" @click="withdraw">Sell Credits</button>
       <button class="button" @click="() => bet(100000)">Let's Bet</button>
       <button class="button" @click="luckyBet"> I'm feeling Lucky </button>
       <br>
+      <button class="button is-danger" @click="updateAuth">updateAuth</button>
       <button class="button is-danger" @click="signOut">LOGOUT</button>
       <!-- <button class="button" @click="getPublicKey">getPublicKey</button> -->
     </div>
@@ -34,11 +34,14 @@ const requiredFields = { accounts: [network] };
 
 export default {
   name: "home",
-  data: () => ({
-    account_name: "happyeosslot"
-  }),
+  // data: () => ({
+  //   account_name: "happyeosslot"
+  // }),
   computed: {
-    ...mapState(["identity", "scatter", "eos", "account"])
+    ...mapState(["identity", "scatter", "eos", "account"]),
+    ...mapState({
+      account_name: state => state.account.name
+    })
   },
   components: {
     HelloWorld,
@@ -71,15 +74,13 @@ export default {
         this.setIdentity(null);
       } catch (error) {}
     },
-    async buy(amount) {
+    async buy() {
+      const amount = Number(
+        prompt("How much EOS you want to buy the credits?")
+      ).toFixed(4);
       const { account_name } = this;
       this.eos
-        .transfer(
-          this.account.name,
-          account_name,
-          `${amount.toFixed(4)} EOS`,
-          ""
-        )
+        .transfer(this.account.name, account_name, `${amount} EOS`, "")
         .then(() => {
           this.notification("succeeded", "购买成功");
           return Promise.resolve(null);
@@ -108,7 +109,6 @@ export default {
       return key;
     },
     updateAuth() {
-      this.notification("pending", "正在对合约账户授权");
       return this.getPublicKey()
         .then(key => {
           return this.eos.updateauth({
@@ -160,8 +160,7 @@ export default {
           this.notification("error", "兑换失败", err.toString());
         });
     },
-    bet(amount) {
-      const seed = prompt("What is your seed?");
+    bet({ seed, amount }) {
       console.info(`Seed converted into sha256: ${sha256(seed)}`);
       this.eos
         .contract("happyeosslot", { requiredFields })
@@ -180,19 +179,7 @@ export default {
     luckyBet() {
       const amount = parseInt(prompt("How much credits you want to bet?"));
       const seed = randUuid();
-      this.eos
-        .contract("happyeosslot", { requiredFields })
-        .then(contract =>
-          contract.bet(this.account.name, parseInt(amount), sha256(seed), {
-            authorization: [`${this.account.name}@${this.account.authority}`]
-          })
-        )
-        .then(() => {
-          this.notification("succeeded", "BET 交易发送成功");
-        })
-        .catch(err => {
-          this.notification("error", "BET 交易发送失败", err.toString());
-        });
+      this.bet({ seed, amount });
     }
   }
 };
