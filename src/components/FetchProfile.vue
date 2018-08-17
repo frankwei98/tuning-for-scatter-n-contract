@@ -1,6 +1,6 @@
 <template>
     <div class="balance">
-        <p> You have {{ balance.eos }} now. </p>
+      <h2 class="subtitle">Your ID is: {{ account_name }}, you have {{ balance.eos }} </h2>
         <ul>
             <li v-for="info in userinfos" :key="info.account">
                 {{ info.account }} Have {{ info.credits }} Chips in the pocket

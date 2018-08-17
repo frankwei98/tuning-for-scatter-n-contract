@@ -1,16 +1,16 @@
 <template>
   <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png">
+    <img alt="logo" src="../assets/logo.svg" class="logo" >
     <div class="btn-group" v-if="identity">
-      <FetchBalance account_name="yabukinanako" symbol="EOS" />
-      <h1 class="title">Welcome back! Your ID is: {{ identity.accounts[0].name }}</h1>
+      <h1 class="title"> The Happy EOS Slot </h1>
+      <FetchProfile :account_name="identity.accounts[0].name" symbol="EOS" v-if="identity" />
       <!-- <button class="button" @click="updateAuth">updateAuth</button> -->
       <button class="button" @click="() => buy(1)">Buy Credits</button>
       <button class="button" @click="() => withdraw(10)">Sell Credits</button>
       <button class="button" @click="() => bet(10000000)">Let's Bet</button>
       <br>
-      <button class="button" @click="signOut">LOGOUT</button>
-      <button class="button" @click="getPublicKey">getPublicKey</button>
+      <button class="button is-danger" @click="signOut">LOGOUT</button>
+      <!-- <button class="button" @click="getPublicKey">getPublicKey</button> -->
     </div>
     <div class="btn-group" v-else>
       <button class="button" @click="requestId">Fetch Scatter ID</button>
@@ -24,7 +24,7 @@
 import { mapState, mapMutations } from "vuex";
 import { sha256 } from "eosjs-ecc";
 import HelloWorld from "@/components/HelloWorld.vue";
-import FetchBalance from "@/components/FetchBalance.vue";
+import FetchProfile from "@/components/FetchProfile.vue";
 import axios from "axios";
 import { networks } from "../config";
 const network = networks["eosasia"];
@@ -40,7 +40,7 @@ export default {
   },
   components: {
     HelloWorld,
-    FetchBalance
+    FetchProfile
   },
   created() {
     this.getPublicKey();
@@ -173,3 +173,9 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+.logo {
+  max-width: 16rem;
+}
+</style>
