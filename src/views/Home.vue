@@ -7,7 +7,7 @@
       <!-- <button class="button" @click="updateAuth">updateAuth</button> -->
       <button class="button" @click="() => buy(1)">Buy Credits</button>
       <button class="button" @click="() => withdraw(10)">Sell Credits</button>
-      <button class="button" @click="() => bet(1)">Let's Bet</button>
+      <button class="button" @click="() => bet(10000000)">Let's Bet</button>
       <br>
       <button class="button" @click="signOut">LOGOUT</button>
       <button class="button" @click="getPublicKey">getPublicKey</button>
@@ -22,6 +22,7 @@
 <script>
 // @ is an alias to /src
 import { mapState, mapMutations } from "vuex";
+import { sha256 } from "eosjs-ecc";
 import HelloWorld from "@/components/HelloWorld.vue";
 import FetchBalance from "@/components/FetchBalance.vue";
 import axios from "axios";
@@ -154,10 +155,11 @@ export default {
     },
     bet(amount) {
       const seed = prompt("What is your seed?");
+      console.info(`Seed converted into sha256: ${sha256(seed)}`);
       this.eos
         .contract("happyeosslot", { requiredFields })
         .then(contract =>
-          contract.bet(this.account.name, parseInt(amount), seed, {
+          contract.bet(this.account.name, parseInt(amount), sha256(seed), {
             authorization: [`${this.account.name}@${this.account.authority}`]
           })
         )

@@ -2520,7 +2520,7 @@ eosjs-api@7.0.3:
     camel-case "^3.0.0"
     isomorphic-fetch "^2.2.1"
 
-eosjs-ecc@4.0.3:
+eosjs-ecc@4.0.3, eosjs-ecc@^4.0.3:
   version "4.0.3"
   resolved "http://registry.npm.taobao.org/eosjs-ecc/download/eosjs-ecc-4.0.3.tgz#034608e1b9f802b624c16d4a93bacc51dc17e8b3"
   dependencies:
