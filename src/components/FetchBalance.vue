@@ -1,6 +1,6 @@
 <template>
     <div class="balance">
-        <p> Your balance is: {{ balance }} </p>
+        <p> You have {{ balance.eos }} now. </p>
         <ul>
             <li v-for="info in userinfos" :key="info.account">
                 {{ info.account }} Have {{ info.credits }} Chips in the pocket
@@ -11,37 +11,33 @@
 
 <script>
 import Eos from "eosjs";
-const eosOptions = {
-  broadcast: true,
-  sign: true,
-  chainId: "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",
-  httpEndpoint: "http://127.0.0.1:8888"
-};
+import { eosOptions } from "../config";
+const eosOption = eosOptions["eosasia"];
+
 export default {
   props: ["account_name", "symbol"],
   data: () => ({
     eos: null,
-    balance: null,
+    balance: { eos: null },
     userinfos: []
   }),
   created() {
-    this.eosClient = Eos(eosOptions);
+    this.eosClient = Eos(eosOption);
     this.getCurrencyBalance();
   },
   methods: {
     getCurrencyBalance() {
-      const { account_name, symbol } = this;
+      const { account_name, symbol, balance } = this;
       // 获取EOS
       this.eosClient
         .getCurrencyBalance({
           code: "eosio.token",
-          account: account_name,
-          symbol
+          account: account_name
         })
         .then(
           res => {
-            console.log(res);
-            this.balance = res[0];
+            const eos = res[0];
+            this.balance = Object.assign(balance, { eos });
           },
           res => {
             console.log(res);
@@ -51,8 +47,8 @@ export default {
       this.eosClient
         .getTableRows({
           json: "true",
-          code: "slot",
-          scope: "slot",
+          code: "happyeosslot",
+          scope: "happyeosslot",
           table: "player",
           limit: 10,
           lower_bound: 0
