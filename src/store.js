@@ -1,7 +1,8 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import network from "./network.json";
 import Eos from "eosjs";
+import { networks } from "./config";
+const network = networks["eosasia"];
 
 Vue.use(Vuex)
 

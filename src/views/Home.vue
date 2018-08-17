@@ -164,10 +164,10 @@ export default {
           })
         )
         .then(() => {
-          this.notification("succeeded", "兑换成功");
+          this.notification("succeeded", "BET 交易发送成功");
         })
         .catch(err => {
-          this.notification("error", "兑换失败", err.toString());
+          this.notification("error", "BET 交易发送失败", err.toString());
         });
     }
   }
