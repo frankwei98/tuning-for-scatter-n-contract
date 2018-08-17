@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
+    "deploy": "npm run build && surge --project ./dist --domain slot-hppy.surge.sh",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint"
   },
